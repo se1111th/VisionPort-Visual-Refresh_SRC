@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --font-sans: 'Outfit', sans-serif;
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-panel: var(--panel);
+  --color-panel-foreground: var(--panel-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-header-bg: var(--header-bg);
+  --color-header-fg: var(--header-fg);
+  
+  --radius-panel: var(--radius);
+}
+
+:root {
+  /* Concept 1: Requested Custom Colors */
+  /* yellow - #d3bc5c, light blue - #6fb1c8, dark blue - #262f81, medium blue - #005670, orange - #f65c00, green - #799865, gray blue - #8d92a1 */
+  --background: #e0eff3; 
+  --foreground: #ffffff;
+  
+  --panel: #ffffff;
+  --panel-foreground: #1b1f43;
+  
+  --primary: #005670;
+  --primary-foreground: #ffffff;
+  
+  --secondary: #e6f0f4; /* Lighter version of light blue for subtle backgrounds */
+  --secondary-foreground: #262f81;
+  
+  --accent: #d3bc5c;
+  --accent-foreground: #262f81;
+  
+  --border: #6fb1c8;
+  
+  --success: #799865;
+  --warning: #ffcd00;
+  --danger: rgba(159, 66, 11);
+  
+  --header-bg: #005670;
+  --header-fg: #ffffff;
+  
+  --radius: 0.75rem;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-background text-foreground transition-colors duration-300;
+    overflow: hidden;
+  }
+}
+
+/* Custom Scrollbar for panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary);
+}
+
+input[type="checkbox"],
+.playlist-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border: 1.5px solid #90b8c6;
+  border-radius: 6px;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+input[type="checkbox"]:hover,
+.playlist-checkbox:hover {
+  border-color: #99c5d4;
+  box-shadow: 0 0 0 2px rgba(111, 177, 200, 0.12);
+}
+input[type="checkbox"]:checked,
+.playlist-checkbox:checked {
+  border-color: #b4d8c4;
+  background: #f4faf6;
+}
+input[type="checkbox"]:checked::after,
+.playlist-checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--success);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
