@@ -1,4 +1,5 @@
 import { Switch, Route, Router } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -15,29 +16,12 @@ function AppRoutes() {
   );
 }
 
-function getRouterBase() {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  const isGithubPagesHost = window.location.hostname.endsWith("github.io");
-  if (!isGithubPagesHost) {
-    return "";
-  }
-
-  const [firstSegment] = window.location.pathname.split("/").filter(Boolean);
-
-  return firstSegment ? `/${firstSegment}` : "";
-}
-
 function App() {
-  const base = getRouterBase();
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router base={base}>
+        <Router hook={useHashLocation}>
           <AppRoutes />
         </Router>
       </TooltipProvider>
