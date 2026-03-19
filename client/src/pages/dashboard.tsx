@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
@@ -32,6 +32,687 @@ import logo from "@assets/VisionPort-Logo-white_825w_1773355501339.png";
 import "./dashboard.css";
 
 const sidebarTabs = ["PLAYLISTS", "PRESENTATIONS", "ASSETS"] as const;
+
+type SettingsGalleryLayout =
+  | "duplicate-scene"
+  | "import"
+  | "capture-presentation"
+  | "unsaved-ignore"
+  | "unsaved-close"
+  | "publish-consumers"
+  | "about"
+  | "info-for-galadmin"
+  | "presentation-settings"
+  | "asset-wizard"
+  | "admin"
+  | "playlist-settings"
+  | "edit-user"
+  | "asset-settings"
+  | "capture-screenshot";
+
+type SettingsGallerySlide = {
+  fileStem: string;
+  modalTitle: string;
+  layout: SettingsGalleryLayout;
+};
+
+const settingsGallerySlides: SettingsGallerySlide[] = [
+  {
+    fileStem: "Duplicate Scene",
+    modalTitle: "Duplicate Scene",
+    layout: "duplicate-scene",
+  },
+  {
+    fileStem: "Import",
+    modalTitle: "Import",
+    layout: "import",
+  },
+  {
+    fileStem: "Capture - Screenshot",
+    modalTitle: "Capture",
+    layout: "capture-screenshot",
+  },
+  {
+    fileStem: "Capture - Presentation",
+    modalTitle: "Capture",
+    layout: "capture-presentation",
+  },
+  {
+    fileStem: "Unsaved data - Ignore",
+    modalTitle: "Unsaved data",
+    layout: "unsaved-ignore",
+  },
+  {
+    fileStem: "Unsaved data - Close",
+    modalTitle: "Unsaved data",
+    layout: "unsaved-close",
+  },
+  {
+    fileStem: "Publish to Consumers",
+    modalTitle: "Publish to Consumers",
+    layout: "publish-consumers",
+  },
+  {
+    fileStem: "About",
+    modalTitle: "About",
+    layout: "about",
+  },
+  {
+    fileStem: "Info for galadmin",
+    modalTitle: "Info for galadmin",
+    layout: "info-for-galadmin",
+  },
+  {
+    fileStem: "Presentation Settings",
+    modalTitle: "Presentation Settings",
+    layout: "presentation-settings",
+  },
+  {
+    fileStem: "Asset Wizard",
+    modalTitle: "Asset Wizard",
+    layout: "asset-wizard",
+  },
+  {
+    fileStem: "Admin",
+    modalTitle: "Admin",
+    layout: "admin",
+  },
+  {
+    fileStem: "Playlist Settings",
+    modalTitle: "Playlist Settings",
+    layout: "playlist-settings",
+  },
+  {
+    fileStem: "Edit User",
+    modalTitle: "Edit User",
+    layout: "edit-user",
+  },
+  {
+    fileStem: "Asset Settings",
+    modalTitle: "Asset Settings",
+    layout: "asset-settings",
+  },
+];
+
+function renderSettingsGallerySlide(layout: SettingsGalleryLayout): ReactNode {
+  if (layout === "duplicate-scene") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__layer settings-gallery__section">
+          <label className="settings-gallery__label" htmlFor="gallery-duplicate-target">
+            Choose presentations
+          </label>
+          <select
+            id="gallery-duplicate-target"
+            className="settings-gallery__input settings-gallery__input--select"
+            defaultValue="new-clone"
+          >
+            <option value="new-clone">New Clone</option>
+            <option value="same-playlist">Same Playlist</option>
+            <option value="other-playlist">Other Playlist</option>
+          </select>
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Direct Link instead of New Clone</span>
+          </label>
+        </div>
+
+        <div className="settings-gallery__actions">
+          <button type="button" className="settings-gallery__action-button settings-gallery__action-button--success">
+            DUPLICATE
+          </button>
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "import") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__surface settings-gallery__dropzone">
+          <div className="settings-gallery__dropzone-icon">⬆</div>
+          <div>Drag files here to upload them</div>
+          <button type="button" className="settings-gallery__ghost-button">
+            CLICK TO BROWSE
+          </button>
+        </div>
+
+        <div className="settings-gallery__row">
+          <span className="settings-gallery__label">Import method:</span>
+          <label className="settings-gallery__radio-row">
+            <input type="radio" name="import-method" defaultChecked />
+            <span>Merge</span>
+          </label>
+          <label className="settings-gallery__radio-row">
+            <input type="radio" name="import-method" />
+            <span>Clone</span>
+          </label>
+        </div>
+
+        <div className="settings-gallery__actions">
+          <button type="button" className="settings-gallery__action-button settings-gallery__action-button--neutral">
+            CLEAR
+          </button>
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--close"
+          >
+            CLOSE
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "capture-presentation") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__tabs settings-gallery__tabs--two">
+          <button type="button" className="settings-gallery__tab">
+            SCREENSHOT
+          </button>
+          <button type="button" className="settings-gallery__tab is-active">
+            PRESENTATION
+          </button>
+        </div>
+
+        <div className="settings-gallery__actions settings-gallery__actions--toolbar">
+          <button type="button" className="settings-gallery__ghost-button">
+            CAPTURE
+          </button>
+          <button type="button" className="settings-gallery__ghost-button">
+            REFRESH LIST
+          </button>
+        </div>
+
+        <div className="settings-gallery__surface settings-gallery__table">
+          <div className="settings-gallery__table-head">
+            <span>Preview</span>
+            <span>Presentation Name</span>
+            <span>Video</span>
+            <span>Screenshots</span>
+            <span>PDF</span>
+          </div>
+          <div className="settings-gallery__table-empty">No data available</div>
+        </div>
+
+        <div className="settings-gallery__row settings-gallery__row--between">
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" defaultChecked />
+            <span>Include active presentation</span>
+          </label>
+          <select className="settings-gallery__input settings-gallery__input--inline" defaultValue="test1">
+            <option value="test1">test1</option>
+          </select>
+        </div>
+
+        <div className="settings-gallery__actions settings-gallery__actions--center">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--close"
+          >
+            CLOSE
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "unsaved-ignore") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__surface settings-gallery__notice">
+          Are you sure you want to ignore some modifications?
+        </div>
+        <div className="settings-gallery__actions">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+          <button type="button" className="settings-gallery__action-button settings-gallery__action-button--success">
+            IGNORE
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "unsaved-close") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__surface settings-gallery__notice">
+          Unsaved changes are present. Close this window anyway?
+        </div>
+        <div className="settings-gallery__actions">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+          <button type="button" className="settings-gallery__action-button settings-gallery__action-button--success">
+            CLOSE
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "publish-consumers") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__surface settings-gallery__section settings-gallery__section--publish">
+          <label className="settings-gallery__checkbox-row settings-gallery__checkbox-row--right">
+            <input type="checkbox" className="dashboard-checkbox" defaultChecked />
+            <span>Select All</span>
+          </label>
+          {["solotn", "vptogo", "vpsmalls", "vpbook"].map((consumer) => (
+            <label key={consumer} className="settings-gallery__checkbox-row">
+              <input type="checkbox" className="dashboard-checkbox" defaultChecked />
+              <span>{consumer}</span>
+            </label>
+          ))}
+        </div>
+        <div className="settings-gallery__actions">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+          <button type="button" className="settings-gallery__action-button settings-gallery__action-button--success">
+            PUBLISH
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "about") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__surface settings-gallery__section">
+          <div className="settings-gallery__card">
+            <h4>Server version</h4>
+            <p>sort_fix -- 2.3.1-1-g1b39cdf5 -- Tue Feb 10 09:58:19 2026</p>
+          </div>
+          <div className="settings-gallery__card">
+            <h4>Interface version</h4>
+            <p>admin_only -- 2.3.10-11-gf24ff082 -- Tue Mar 17 17:55:25 2026</p>
+          </div>
+          <div className="settings-gallery__card settings-gallery__card--compact">
+            For questions or support, email support@visionport.com
+          </div>
+        </div>
+        <div className="settings-gallery__actions settings-gallery__actions--center">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--close"
+          >
+            CLOSE
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "info-for-galadmin") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__layer settings-gallery__section">
+          <select className="settings-gallery__input settings-gallery__input--select" defaultValue="preferences">
+            <option value="preferences">Preferences</option>
+          </select>
+          <input className="settings-gallery__input" defaultValue="lg@endpoint.com" />
+          <input className="settings-gallery__input" defaultValue="galadmin" />
+          <input className="settings-gallery__input" defaultValue="Enter New Password" />
+          <input className="settings-gallery__input" defaultValue="Confirm New Password" />
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" defaultChecked />
+            <span>Is Super</span>
+          </label>
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Is Admin</span>
+          </label>
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" defaultChecked />
+            <span>Is Active</span>
+          </label>
+          <select className="settings-gallery__input settings-gallery__input--select" defaultValue="all">
+            <option value="all">Presentations modified or created</option>
+          </select>
+        </div>
+        <div className="settings-gallery__actions">
+          <button type="button" className="settings-gallery__action-button settings-gallery__action-button--success">
+            SAVE
+          </button>
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "presentation-settings") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__layer settings-gallery__section">
+          <input className="settings-gallery__input" defaultValue="test1" />
+          <textarea className="settings-gallery__input settings-gallery__input--area" defaultValue="testing on 1" />
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Admin only</span>
+          </label>
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Loop</span>
+          </label>
+          <div className="settings-gallery__meta-grid">
+            <div>
+              <strong>Created:</strong> 12/10/2025
+            </div>
+            <div>
+              <strong>Modified:</strong> 1/14/2026
+            </div>
+            <div>
+              <strong>Playlists:</strong> SethTest
+            </div>
+          </div>
+        </div>
+        <div className="settings-gallery__actions settings-gallery__actions--center">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "asset-wizard") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__tabs">
+          <button type="button" className="settings-gallery__tab is-active">
+            UPLOAD LOCAL FILES
+          </button>
+          <button type="button" className="settings-gallery__tab">
+            ADD REMOTE URL
+          </button>
+          <button type="button" className="settings-gallery__tab">
+            KML TOUR WIZARD
+          </button>
+        </div>
+        <div className="settings-gallery__surface settings-gallery__dropzone">
+          <div className="settings-gallery__dropzone-icon">⬆</div>
+          <div>Drag files here to upload them</div>
+          <button type="button" className="settings-gallery__ghost-button">
+            CLICK TO BROWSE
+          </button>
+        </div>
+        <div className="settings-gallery__section settings-gallery__section--compact">
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Search and Replace</span>
+          </label>
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Create Scenes from Assets</span>
+          </label>
+          <div className="settings-gallery__row">
+            <select className="settings-gallery__input settings-gallery__input--inline">
+              <option>Asset Type: Graphic</option>
+            </select>
+            <select className="settings-gallery__input settings-gallery__input--inline">
+              <option>Add to</option>
+            </select>
+          </div>
+        </div>
+        <div className="settings-gallery__actions">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--close"
+          >
+            CLOSE
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "admin") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__tabs">
+          <button type="button" className="settings-gallery__tab is-active">
+            USERS
+          </button>
+          <button type="button" className="settings-gallery__tab">
+            SYSTEM PREFERENCES
+          </button>
+          <button type="button" className="settings-gallery__tab">
+            SYSTEM CONTROL
+          </button>
+        </div>
+        <div className="settings-gallery__surface settings-gallery__table">
+          <div className="settings-gallery__table-head">
+            <span>Email</span>
+            <span>Username</span>
+            <span>Active</span>
+            <span>Admin</span>
+            <span>Super</span>
+          </div>
+          {["aramon", "tino", "ashley", "bharathi"].map((row) => (
+            <div key={row} className="settings-gallery__table-row">
+              <span>{row}@endpointdev.com</span>
+              <span>{row}</span>
+              <span>Yes</span>
+              <span>No</span>
+              <span>No</span>
+            </div>
+          ))}
+        </div>
+        <div className="settings-gallery__row settings-gallery__row--between">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--close"
+          >
+            CLOSE
+          </button>
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Show Inactive Users</span>
+          </label>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "playlist-settings") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__layer settings-gallery__section">
+          <input className="settings-gallery__input" defaultValue="CBRE Market Canvas Launchers" />
+          <textarea className="settings-gallery__input settings-gallery__input--area" defaultValue="Description" />
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Admin only</span>
+          </label>
+          <div className="settings-gallery__meta-grid">
+            <div>
+              <strong>Created:</strong> 3/10/2026
+            </div>
+            <div>
+              <strong>By:</strong> galadmin
+            </div>
+            <div>
+              <strong>Presentations:</strong> Market Canvas Launchers, Atlanta Braves
+            </div>
+          </div>
+        </div>
+        <div className="settings-gallery__actions">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--danger settings-gallery__action-button"
+          >
+            DELETE
+          </button>
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "edit-user") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__layer settings-gallery__section">
+          <input className="settings-gallery__input" defaultValue="aramon@endpointdev.com" />
+          <input className="settings-gallery__input" defaultValue="aramon" />
+          <input className="settings-gallery__input" defaultValue="Enter New Password" />
+          <input className="settings-gallery__input" defaultValue="Confirm New Password" />
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Is Super</span>
+          </label>
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" />
+            <span>Is Admin</span>
+          </label>
+          <label className="settings-gallery__checkbox-row">
+            <input type="checkbox" className="dashboard-checkbox" defaultChecked />
+            <span>Is Active</span>
+          </label>
+          <select className="settings-gallery__input settings-gallery__input--select">
+            <option>Presentations modified or created</option>
+          </select>
+        </div>
+        <div className="settings-gallery__actions">
+          <button type="button" className="settings-gallery__action-button settings-gallery__action-button--success">
+            SAVE
+          </button>
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === "asset-settings") {
+    return (
+      <div className="settings-gallery__content">
+        <div className="settings-gallery__layer settings-gallery__section">
+          <input
+            className="settings-gallery__input"
+            defaultValue="Captured Location - 2026-01-14_23-06-26"
+          />
+          <input className="settings-gallery__input" defaultValue="Description" />
+          <div className="settings-gallery__meta-grid settings-gallery__meta-grid--asset">
+            <div>
+              <strong>Id:</strong> 1729
+            </div>
+            <div>
+              <strong>Asset Type:</strong> KML Tour
+            </div>
+            <div>
+              <strong>Location:</strong> 8133e1afd81d470980c4a4a300af6142.kml
+            </div>
+            <div>
+              <strong>Found in:</strong> 1 Scene
+            </div>
+          </div>
+          <div className="settings-gallery__map" />
+        </div>
+        <div className="settings-gallery__actions settings-gallery__actions--center">
+          <button
+            type="button"
+            className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--cancel"
+          >
+            CANCEL
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="settings-gallery__content">
+      <div className="settings-gallery__tabs settings-gallery__tabs--two">
+        <button type="button" className="settings-gallery__tab is-active">
+          SCREENSHOT
+        </button>
+        <button type="button" className="settings-gallery__tab">
+          PRESENTATION
+        </button>
+      </div>
+
+      <div className="settings-gallery__actions settings-gallery__actions--toolbar">
+        <button type="button" className="settings-gallery__ghost-button">
+          TAKE SCREENSHOT
+        </button>
+        <button type="button" className="settings-gallery__ghost-button">
+          REFRESH LIST
+        </button>
+        <button type="button" className="settings-gallery__ghost-button">
+          DOWNLOAD ALL
+        </button>
+      </div>
+
+      <div className="settings-gallery__surface settings-gallery__table">
+        <div className="settings-gallery__table-head">
+          <span>Thumbnail</span>
+          <span>File Name</span>
+          <span>Download</span>
+        </div>
+        {[
+          "vpbook1-scrnsht.png",
+          "vp-screenshot-2025-12-30-31_05.jpg",
+          "vp-screenshot-2025-12-30-29_15.jpg",
+        ].map((fileName) => (
+          <div key={fileName} className="settings-gallery__table-row">
+            <span className="settings-gallery__thumb" />
+            <span>{fileName}</span>
+            <span>↓</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="settings-gallery__row settings-gallery__row--between">
+        <span>1-8 of 14</span>
+        <button
+          type="button"
+          className="dashboard-button dashboard-button--primary settings-gallery__action-button settings-gallery__action-button--close"
+        >
+          CLOSE
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const sceneThumbnailThemes = [
   {
@@ -175,6 +856,8 @@ export default function Dashboard() {
   const [checkedScenes, setCheckedScenes] = useState<Set<string>>(new Set());
   const [activeSidebarTab, setActiveSidebarTab] =
     useState<(typeof sidebarTabs)[number]>("PLAYLISTS");
+  const [isSettingsGalleryOpen, setIsSettingsGalleryOpen] = useState(false);
+  const [activeSettingsSlideIndex, setActiveSettingsSlideIndex] = useState(0);
 
   const { data: playlists = [], isLoading: loadingPlaylists } = useQuery<
     Playlist[]
@@ -288,6 +971,61 @@ export default function Dashboard() {
     setActiveSidebarTab(sidebarTabs[nextIndex]);
   };
 
+  const openSettingsGallery = (slideIndex = 0) => {
+    const normalizedIndex =
+      ((slideIndex % settingsGallerySlides.length) +
+        settingsGallerySlides.length) %
+      settingsGallerySlides.length;
+    setActiveSettingsSlideIndex(normalizedIndex);
+    setIsSettingsGalleryOpen(true);
+  };
+
+  const openSettingsGalleryByLayout = (layout: SettingsGalleryLayout) => {
+    const slideIndex = settingsGallerySlides.findIndex(
+      (slide) => slide.layout === layout,
+    );
+    openSettingsGallery(slideIndex >= 0 ? slideIndex : 0);
+  };
+
+  const closeSettingsGallery = () => {
+    setIsSettingsGalleryOpen(false);
+  };
+
+  const goToPreviousSettingsSlide = () => {
+    setActiveSettingsSlideIndex((previous) =>
+      (previous - 1 + settingsGallerySlides.length) %
+      settingsGallerySlides.length,
+    );
+  };
+
+  const goToNextSettingsSlide = () => {
+    setActiveSettingsSlideIndex(
+      (previous) => (previous + 1) % settingsGallerySlides.length,
+    );
+  };
+
+  useEffect(() => {
+    if (!isSettingsGalleryOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeSettingsGallery();
+      } else if (event.key === "ArrowLeft") {
+        goToPreviousSettingsSlide();
+      } else if (event.key === "ArrowRight") {
+        goToNextSettingsSlide();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSettingsGalleryOpen]);
+
   const playlistCollections = [
     {
       id: "current-playlist",
@@ -341,7 +1079,10 @@ export default function Dashboard() {
               <button
                 type="button"
                 className="dashboard-icon-button dashboard-icon-button--sidebar"
-                onClick={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openSettingsGallery();
+                }}
               >
                 <Settings size={14} />
               </button>
@@ -398,7 +1139,10 @@ export default function Dashboard() {
                       <button
                         type="button"
                         className="dashboard-icon-button dashboard-icon-button--sidebar dashboard-icon-button--small"
-                        onClick={(event) => event.stopPropagation()}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openSettingsGallery();
+                        }}
                       >
                         <Settings size={12} />
                       </button>
@@ -465,7 +1209,10 @@ export default function Dashboard() {
               <button
                 type="button"
                 className="dashboard-icon-button dashboard-icon-button--sidebar"
-                onClick={(event) => event.stopPropagation()}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openSettingsGallery();
+                }}
               >
                 <Settings size={14} />
               </button>
@@ -490,7 +1237,10 @@ export default function Dashboard() {
                     <button
                       type="button"
                       className="dashboard-icon-button dashboard-icon-button--sidebar dashboard-icon-button--small"
-                      onClick={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openSettingsGallery();
+                      }}
                     >
                       <Settings size={12} />
                     </button>
@@ -529,6 +1279,7 @@ export default function Dashboard() {
           <button
             type="button"
             className="dashboard-icon-button dashboard-icon-button--sidebar"
+            onClick={() => openSettingsGallery()}
           >
             <Settings size={14} />
           </button>
@@ -548,6 +1299,8 @@ export default function Dashboard() {
 
     return renderAssetRows();
   };
+
+  const activeSettingsSlide = settingsGallerySlides[activeSettingsSlideIndex];
 
   return (
     <div className="dashboard-page">
@@ -689,6 +1442,9 @@ export default function Dashboard() {
                       <button
                         type="button"
                         className="dashboard-icon-button dashboard-icon-button--ghost dashboard-scenes__settings"
+                        onClick={() =>
+                          openSettingsGalleryByLayout("presentation-settings")
+                        }
                       >
                         <Settings size={16} />
                       </button>
@@ -991,7 +1747,11 @@ export default function Dashboard() {
 
                     <div className="dashboard-detail-card__body dashboard-location dashboard-scrollbar">
                       <div className="dashboard-location__card">
-                        <div className="dashboard-location__badge">A</div>
+                        <div className="dashboard-location__badge">
+                          <span className="dashboard-location__badge-letter">
+                            A
+                          </span>
+                        </div>
                         <div className="dashboard-location__content">
                           <div>Captured LG Location</div>
                         </div>
@@ -1005,6 +1765,9 @@ export default function Dashboard() {
                           <button
                             type="button"
                             className="dashboard-icon-button dashboard-icon-button--playlist-settings"
+                            onClick={() =>
+                              openSettingsGalleryByLayout("asset-settings")
+                            }
                           >
                             <Settings size={16} />
                           </button>
@@ -1063,6 +1826,9 @@ export default function Dashboard() {
                             <button
                               type="button"
                               className="dashboard-icon-button dashboard-icon-button--playlist-settings"
+                              onClick={() =>
+                                openSettingsGalleryByLayout("playlist-settings")
+                              }
                             >
                               <Settings size={14} />
                             </button>
@@ -1260,6 +2026,61 @@ export default function Dashboard() {
           </Panel>
         </PanelGroup>
       </div>
+
+      {isSettingsGalleryOpen && (
+        <div className="settings-gallery-overlay" onClick={closeSettingsGallery}>
+          <button
+            type="button"
+            className="settings-gallery-overlay__arrow settings-gallery-overlay__arrow--left"
+            aria-label="Previous settings slide"
+            onClick={(event) => {
+              event.stopPropagation();
+              goToPreviousSettingsSlide();
+            }}
+          >
+            <ChevronLeft size={34} />
+          </button>
+
+          <div
+            className="settings-gallery-overlay__content"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="settings-gallery-modal">
+              <div className="settings-gallery-modal__header">
+                <h2>{activeSettingsSlide.modalTitle}</h2>
+                <button
+                  type="button"
+                  className="settings-gallery-modal__close"
+                  aria-label="Close settings gallery"
+                  onClick={closeSettingsGallery}
+                >
+                  <X size={28} />
+                </button>
+              </div>
+
+              <div className="settings-gallery-modal__body dashboard-scrollbar">
+                {renderSettingsGallerySlide(activeSettingsSlide.layout)}
+              </div>
+            </div>
+
+            <div className="settings-gallery-overlay__counter">
+              {activeSettingsSlideIndex + 1} / {settingsGallerySlides.length}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className="settings-gallery-overlay__arrow settings-gallery-overlay__arrow--right"
+            aria-label="Next settings slide"
+            onClick={(event) => {
+              event.stopPropagation();
+              goToNextSettingsSlide();
+            }}
+          >
+            <ChevronRight size={34} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
