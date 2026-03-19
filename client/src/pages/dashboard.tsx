@@ -134,7 +134,23 @@ const settingsGallerySlides: SettingsGallerySlide[] = [
   },
 ];
 
-function renderSettingsGallerySlide(layout: SettingsGalleryLayout): ReactNode {
+const publishConsumerIds = ["solotn", "vptogo", "vpsmalls", "vpbook"] as const;
+
+type PublishConsumersControls = {
+  checked: Record<string, boolean>;
+  allSelected: boolean;
+  onToggleAll: (checked: boolean) => void;
+  onToggleConsumer: (consumer: string, checked: boolean) => void;
+};
+
+type SettingsGalleryRenderOptions = {
+  publishConsumers?: PublishConsumersControls;
+};
+
+function renderSettingsGallerySlide(
+  layout: SettingsGalleryLayout,
+  options: SettingsGalleryRenderOptions = {},
+): ReactNode {
   if (layout === "duplicate-scene") {
     return (
       <div className="settings-gallery__content">
@@ -307,19 +323,45 @@ function renderSettingsGallerySlide(layout: SettingsGalleryLayout): ReactNode {
   }
 
   if (layout === "publish-consumers") {
+    const publishConsumers = options.publishConsumers;
+
     return (
       <div className="settings-gallery__content">
         <div className="settings-gallery__surface settings-gallery__section settings-gallery__section--publish">
-          <label className="settings-gallery__checkbox-row settings-gallery__checkbox-row--right">
-            <input type="checkbox" className="dashboard-checkbox" defaultChecked />
-            <span>Select All</span>
-          </label>
-          {["solotn", "vptogo", "vpsmalls", "vpbook"].map((consumer) => (
-            <label key={consumer} className="settings-gallery__checkbox-row">
-              <input type="checkbox" className="dashboard-checkbox" defaultChecked />
-              <span>{consumer}</span>
+          <div className="settings-gallery__publish-layout">
+            <div className="settings-gallery__publish-list">
+              {publishConsumerIds.map((consumer) => (
+                <label key={consumer} className="settings-gallery__checkbox-row">
+                  <input
+                    type="checkbox"
+                    className="dashboard-checkbox"
+                    checked={publishConsumers?.checked[consumer] ?? false}
+                    onChange={(event) =>
+                      publishConsumers?.onToggleConsumer(
+                        consumer,
+                        event.target.checked,
+                      )
+                    }
+                  />
+                  <span>{consumer}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="settings-gallery__publish-divider" />
+
+            <label className="settings-gallery__checkbox-row settings-gallery__checkbox-row--publish-all">
+              <input
+                type="checkbox"
+                className="dashboard-checkbox"
+                checked={publishConsumers?.allSelected ?? false}
+                onChange={(event) =>
+                  publishConsumers?.onToggleAll(event.target.checked)
+                }
+              />
+              <span>Select All</span>
             </label>
-          ))}
+          </div>
         </div>
         <div className="settings-gallery__actions">
           <button
@@ -858,6 +900,16 @@ export default function Dashboard() {
     useState<(typeof sidebarTabs)[number]>("PLAYLISTS");
   const [isSettingsGalleryOpen, setIsSettingsGalleryOpen] = useState(false);
   const [activeSettingsSlideIndex, setActiveSettingsSlideIndex] = useState(0);
+  const [publishConsumerCheckedState, setPublishConsumerCheckedState] =
+    useState<Record<string, boolean>>(() =>
+      publishConsumerIds.reduce(
+        (accumulator, consumer) => {
+          accumulator[consumer] = true;
+          return accumulator;
+        },
+        {} as Record<string, boolean>,
+      ),
+    );
 
   const { data: playlists = [], isLoading: loadingPlaylists } = useQuery<
     Playlist[]
@@ -969,6 +1021,29 @@ export default function Dashboard() {
     const nextIndex =
       (index + direction + sidebarTabs.length) % sidebarTabs.length;
     setActiveSidebarTab(sidebarTabs[nextIndex]);
+  };
+
+  const allPublishConsumersSelected = publishConsumerIds.every(
+    (consumer) => publishConsumerCheckedState[consumer],
+  );
+
+  const togglePublishConsumer = (consumer: string, checked: boolean) => {
+    setPublishConsumerCheckedState((previous) => ({
+      ...previous,
+      [consumer]: checked,
+    }));
+  };
+
+  const toggleAllPublishConsumers = (checked: boolean) => {
+    setPublishConsumerCheckedState(
+      publishConsumerIds.reduce(
+        (accumulator, consumer) => {
+          accumulator[consumer] = checked;
+          return accumulator;
+        },
+        {} as Record<string, boolean>,
+      ),
+    );
   };
 
   const openSettingsGallery = (slideIndex = 0) => {
@@ -2059,7 +2134,14 @@ export default function Dashboard() {
               </div>
 
               <div className="settings-gallery-modal__body dashboard-scrollbar">
-                {renderSettingsGallerySlide(activeSettingsSlide.layout)}
+                {renderSettingsGallerySlide(activeSettingsSlide.layout, {
+                  publishConsumers: {
+                    checked: publishConsumerCheckedState,
+                    allSelected: allPublishConsumersSelected,
+                    onToggleAll: toggleAllPublishConsumers,
+                    onToggleConsumer: togglePublishConsumer,
+                  },
+                })}
               </div>
             </div>
 
