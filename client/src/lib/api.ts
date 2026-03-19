@@ -8,6 +8,23 @@ type Store = {
 };
 
 const STORE_KEY = "visionport-poc-store-v1";
+const DEFAULT_PLAYLIST_NAMES = [
+  "VisionPort for Comm Real Estate",
+  "JLL Presentations",
+  "CBRE Portfolio",
+  "Cushman & Wakefield",
+  "Colliers International",
+  "Marcus & Millichap",
+  "Newmark Knight Frank",
+  "Savills North America",
+  "Avison Young",
+  "Berkadia",
+  "HFF Institutional",
+  "Eastdil Secured",
+  "Walker & Dunlop",
+  "Transwestern Properties",
+  "Lee & Associates",
+] as const;
 
 function generateId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -34,15 +51,7 @@ function toDate(value: unknown) {
 
 function buildDefaultStore(): Store {
   const now = new Date();
-  const playlistNames = [
-    "VisionPort for Comm Real Estate",
-    "JLL Presentations",
-    "CBRE Portfolio",
-    "Cushman & Wakefield",
-    "Colliers International",
-  ];
-
-  const playlists: Playlist[] = playlistNames.map((name) => ({
+  const playlists: Playlist[] = DEFAULT_PLAYLIST_NAMES.map((name) => ({
     id: generateId(),
     name,
     type: "playlist",
@@ -114,6 +123,31 @@ function reviveStoreDates(store: Store): Store {
   };
 }
 
+function ensureDefaultPlaylists(store: Store) {
+  const existingNames = new Set(
+    store.playlists.map((playlist) => playlist.name),
+  );
+  const missing = DEFAULT_PLAYLIST_NAMES.filter(
+    (name) => !existingNames.has(name),
+  );
+
+  if (missing.length === 0) {
+    return false;
+  }
+
+  const now = new Date();
+  missing.forEach((name) => {
+    store.playlists.push({
+      id: generateId(),
+      name,
+      type: "playlist",
+      createdAt: now,
+    });
+  });
+
+  return true;
+}
+
 function loadStore(): Store {
   if (typeof window === "undefined") {
     return buildDefaultStore();
@@ -128,7 +162,13 @@ function loadStore(): Store {
 
   try {
     const parsed = JSON.parse(raw) as Store;
-    return reviveStoreDates(parsed);
+    const revived = reviveStoreDates(parsed);
+
+    if (ensureDefaultPlaylists(revived)) {
+      saveStore(revived);
+    }
+
+    return revived;
   } catch {
     const reset = buildDefaultStore();
     saveStore(reset);
