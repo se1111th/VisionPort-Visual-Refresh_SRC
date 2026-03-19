@@ -565,7 +565,7 @@ export default function Dashboard() {
 
         <div className="dashboard-header__account">
           <span className="dashboard-header__flag">GB</span>
-          <span className="dashboard-header__welcome">Welcome, galadmin</span>
+          <span className="dashboard-header__welcome">Welcome!, galadmin</span>
           <button
             type="button"
             className="dashboard-icon-button dashboard-icon-button--ghost"
