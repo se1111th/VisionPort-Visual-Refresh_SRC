@@ -478,8 +478,8 @@
   padding: 8px 14px 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(0, 93, 118, 0.3);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   justify-content: flex-end;
   position: absolute;
@@ -759,8 +759,8 @@
   display: flex;
   justify-content: flex-end;
   background: rgba(248, 251, 252, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-top: 1px solid rgba(111, 177, 200, 0.4);
   position: absolute;
   bottom: 0;

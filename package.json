@@ -5,9 +5,10 @@
   "license": "MIT",
   "scripts": {
     "dev:client": "vite dev --port 5000",
-    "dev": "node --import tsx script/dev.ts",
-    "build": "tsx script/build.ts",
-    "start": "NODE_ENV=production node dist/index.cjs",
+    "dev": "vite dev --port 5000",
+    "build": "vite build",
+    "start": "vite preview --host 0.0.0.0 --port 5000",
+    "preview": "vite preview --host 0.0.0.0 --port 5000",
     "check": "tsc",
     "db:push": "node --import tsx script/db-push.ts"
   },
