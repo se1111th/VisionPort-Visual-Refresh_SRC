@@ -1,4 +1,6 @@
 .dashboard-page {
+  --dashboard-panel-box-shadow: 0 8px 18px rgba(57, 102, 120, 0.16);
+  --dashboard-panel-box-shadow-hover: 0 10px 22px rgba(57, 102, 120, 0.2);
   height: 100vh;
   width: 100vw;
   display: flex;
@@ -1132,6 +1134,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -1140,12 +1143,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 29px;
+  margin-top: 0;
   padding: 16px;
   border-radius: 12px;
   border: 1px solid rgba(111, 177, 200, 0.28);
   background: #dceaf0;
-  box-shadow: 0 2px 6px rgba(111, 177, 200, 0.08);
+  box-shadow: var(--dashboard-panel-box-shadow);
 }
 
 .dashboard-location__badge {
@@ -1185,11 +1188,22 @@
 
 .dashboard-location__content {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
   min-height: 34px;
   font-size: 16px;
   font-weight: 700;
   line-height: 1.2;
+}
+
+.dashboard-location__title {
+  font-weight: 700;
+}
+
+.dashboard-location__timestamp {
+  font-weight: 600;
 }
 
 .dashboard-location__icons {
@@ -1200,10 +1214,111 @@
 }
 
 .dashboard-stack-buttons {
-  margin-top: 2.8rem;
+  margin-top: auto;
+  padding-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.dashboard-stack-buttons .dashboard-button {
+  box-shadow: var(--dashboard-panel-box-shadow);
+}
+
+.dashboard-stack-buttons .dashboard-button:hover {
+  box-shadow: var(--dashboard-panel-box-shadow-hover);
+}
+
+.dashboard-location__placeholder {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 22px;
+  padding: 20px 8px 8px;
+}
+
+.dashboard-location__placeholder-secondary {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  margin-top: 12px;
+}
+
+.dashboard-location__placeholder-action {
+  width: min(320px, 100%);
+  min-height: 58px;
+  border-radius: 8px;
+  border: 1px solid rgba(111, 177, 200, 0.3);
+  background: #dceaf0;
+  color: rgba(53, 60, 97, 0.9);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  box-shadow: var(--dashboard-panel-box-shadow);
+}
+
+.dashboard-location__placeholder-action:hover {
+  background: #d1e2e9;
+}
+
+.dashboard-location__placeholder-or {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+  color: rgba(53, 60, 97, 0.78);
+}
+
+.dashboard-location__drop-target {
+  width: min(420px, 100%);
+  min-height: 126px;
+  border: 1px solid rgba(111, 177, 200, 0.3);
+  border-radius: 8px;
+  background: #dceaf0;
+  color: rgba(53, 60, 97, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 18px 20px;
+  box-shadow: var(--dashboard-panel-box-shadow);
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.dashboard-location__drop-target:hover {
+  background: #d1e2e9;
+  transform: translateY(-1px);
+}
+
+.dashboard-location__drop-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid rgba(111, 177, 200, 0.6);
+  background: #eff7fa;
+  color: rgba(53, 60, 97, 0.75);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 50px;
+}
+
+.dashboard-location__drop-text {
+  max-width: 250px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.28;
 }
 
 .dashboard-assets {
@@ -1226,7 +1341,7 @@
   border-radius: 10px;
   border: 1px solid rgba(111, 177, 200, 0.3);
   background: #dceaf0;
-  box-shadow: 0 1px 4px rgba(89, 139, 156, 0.08);
+  box-shadow: 0 3px 7px rgba(57, 102, 120, 0.1);
 }
 
 .dashboard-asset-row + .dashboard-asset-row {
@@ -1283,13 +1398,14 @@
   border-radius: 10px;
   border: 1px solid rgba(111, 177, 200, 0.3);
   background: #e8f2f6;
+  box-shadow: var(--dashboard-panel-box-shadow);
 }
 
 .dashboard-positioning__panel {
   border-radius: 12px;
   border: 1px solid rgba(111, 177, 200, 0.32);
   background: #dceaf0;
-  box-shadow: 0 2px 6px rgba(89, 139, 156, 0.08);
+  box-shadow: var(--dashboard-panel-box-shadow);
   padding: 16px;
 }
 
@@ -1859,7 +1975,17 @@
 
 .settings-gallery__tab.is-active {
   color: #fff;
-  box-shadow: inset 0 -3px 0 #fff;
+}
+
+.settings-gallery__tab.is-active::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: #fff;
 }
 
 .settings-gallery__dropzone {

@@ -887,6 +887,9 @@ export default function Dashboard() {
     null,
   );
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
+  const [assetsSourceSceneId, setAssetsSourceSceneId] = useState<string | null>(
+    null,
+  );
   const [expandedPlaylistId, setExpandedPlaylistId] = useState<string | null>(
     null,
   );
@@ -936,10 +939,23 @@ export default function Dashboard() {
     }
   }, [scenes, selectedSceneId]);
 
+  useEffect(() => {
+    if (scenes.length === 0) {
+      setAssetsSourceSceneId(null);
+      return;
+    }
+
+    setAssetsSourceSceneId((previous) =>
+      previous && scenes.some((scene) => scene.id === previous)
+        ? previous
+        : scenes[0].id,
+    );
+  }, [scenes]);
+
   const { data: assets = [] } = useQuery<Asset[]>({
-    queryKey: ["assets", selectedSceneId],
-    queryFn: () => api.get(`/api/scenes/${selectedSceneId}/assets`),
-    enabled: !!selectedSceneId,
+    queryKey: ["assets", assetsSourceSceneId],
+    queryFn: () => api.get(`/api/scenes/${assetsSourceSceneId}/assets`),
+    enabled: !!assetsSourceSceneId,
   });
 
   const selectedScene = scenes.find((scene) => scene.id === selectedSceneId);
@@ -954,6 +970,8 @@ export default function Dashboard() {
     selectedScene && selectedSceneIndex >= 0
       ? buildSceneThumbnail(selectedScene.name, selectedSceneIndex)
       : previewPanorama;
+  const showCapturedLocationCard =
+    selectedSceneIndex === 1 && selectedScene?.name === "LA Availability";
 
   const seedMutation = useMutation({
     mutationFn: () => api.post("/api/seed", {}),
@@ -1821,48 +1839,82 @@ export default function Dashboard() {
                     </div>
 
                     <div className="dashboard-detail-card__body dashboard-location dashboard-scrollbar">
-                      <div className="dashboard-location__card">
-                        <div className="dashboard-location__badge">
-                          <span className="dashboard-location__badge-letter">
-                            A
-                          </span>
-                        </div>
-                        <div className="dashboard-location__content">
-                          <div>Captured LG Location</div>
-                        </div>
-                        <div className="dashboard-location__icons">
-                          <button
-                            type="button"
-                            className="dashboard-icon-button dashboard-icon-button--tool dashboard-icon-button--asset-info"
-                          >
-                            <Info size={36} />
-                          </button>
-                          <button
-                            type="button"
-                            className="dashboard-icon-button dashboard-icon-button--playlist-settings"
-                            onClick={() =>
-                              openSettingsGalleryByLayout("asset-settings")
-                            }
-                          >
-                            <Settings size={16} />
-                          </button>
-                        </div>
-                      </div>
+                      {showCapturedLocationCard ? (
+                        <>
+                          <div className="dashboard-location__card">
+                            <div className="dashboard-location__badge">
+                              <span className="dashboard-location__badge-letter">
+                                A
+                              </span>
+                            </div>
+                            <div className="dashboard-location__content">
+                              <div className="dashboard-location__title">
+                                Captured LG Location
+                              </div>
+                              <div className="dashboard-location__timestamp">
+                                2025-11-25_20-40-44
+                              </div>
+                            </div>
+                            <div className="dashboard-location__icons">
+                              <button
+                                type="button"
+                                className="dashboard-icon-button dashboard-icon-button--tool dashboard-icon-button--asset-info"
+                              >
+                                <Info size={36} />
+                              </button>
+                              <button
+                                type="button"
+                                className="dashboard-icon-button dashboard-icon-button--playlist-settings"
+                                onClick={() =>
+                                  openSettingsGalleryByLayout("asset-settings")
+                                }
+                              >
+                                <Settings size={16} />
+                              </button>
+                            </div>
+                          </div>
 
-                      <div className="dashboard-stack-buttons">
-                        <button
-                          type="button"
-                          className="dashboard-button dashboard-button--primary"
-                        >
-                          CAPTURE NEW LOCATION
-                        </button>
-                        <button
-                          type="button"
-                          className="dashboard-button dashboard-button--danger"
-                        >
-                          REMOVE LOCATION
-                        </button>
-                      </div>
+                          <div className="dashboard-stack-buttons">
+                            <button
+                              type="button"
+                              className="dashboard-button dashboard-button--primary"
+                            >
+                              CAPTURE NEW LOCATION
+                            </button>
+                            <button
+                              type="button"
+                              className="dashboard-button dashboard-button--danger"
+                            >
+                              REMOVE LOCATION
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="dashboard-location__placeholder">
+                          <button
+                            type="button"
+                            className="dashboard-button dashboard-location__placeholder-action"
+                          >
+                            CAPTURE LOCATION
+                          </button>
+                          <div className="dashboard-location__placeholder-secondary">
+                            <div className="dashboard-location__placeholder-or">
+                              Or
+                            </div>
+                            <button
+                              type="button"
+                              className="dashboard-location__drop-target"
+                            >
+                              <span className="dashboard-location__drop-icon">
+                                <Info size={22} />
+                              </span>
+                              <span className="dashboard-location__drop-text">
+                                Drag and drop KML Tour asset here
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </section>
 
