@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import {
@@ -12,11 +12,13 @@ import {
   Folder,
   Image as ImageIcon,
   Info,
+  Menu,
   Maximize,
   Maximize2,
   Plus,
   RectangleHorizontal,
   RectangleVertical,
+  RefreshCw,
   Search,
   Settings,
   Shrink,
@@ -902,7 +904,9 @@ export default function Dashboard() {
   const [activeSidebarTab, setActiveSidebarTab] =
     useState<(typeof sidebarTabs)[number]>("PLAYLISTS");
   const [isSettingsGalleryOpen, setIsSettingsGalleryOpen] = useState(false);
+  const [isPrefsMenuOpen, setIsPrefsMenuOpen] = useState(false);
   const [activeSettingsSlideIndex, setActiveSettingsSlideIndex] = useState(0);
+  const prefsMenuRef = useRef<HTMLDivElement | null>(null);
   const [publishConsumerCheckedState, setPublishConsumerCheckedState] =
     useState<Record<string, boolean>>(() =>
       publishConsumerIds.reduce(
@@ -1080,6 +1084,39 @@ export default function Dashboard() {
     openSettingsGallery(slideIndex >= 0 ? slideIndex : 0);
   };
 
+  const handlePrefsMenuAction = (
+    action: "import" | "capture" | "my-account" | "admin" | "about" | "refresh",
+  ) => {
+    setIsPrefsMenuOpen(false);
+
+    if (action === "import") {
+      openSettingsGalleryByLayout("import");
+      return;
+    }
+
+    if (action === "capture") {
+      openSettingsGalleryByLayout("capture-screenshot");
+      return;
+    }
+
+    if (action === "my-account") {
+      openSettingsGalleryByLayout("info-for-galadmin");
+      return;
+    }
+
+    if (action === "admin") {
+      openSettingsGalleryByLayout("admin");
+      return;
+    }
+
+    if (action === "about") {
+      openSettingsGalleryByLayout("about");
+      return;
+    }
+
+    window.location.reload();
+  };
+
   const closeSettingsGallery = () => {
     setIsSettingsGalleryOpen(false);
   };
@@ -1118,6 +1155,27 @@ export default function Dashboard() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isSettingsGalleryOpen]);
+
+  useEffect(() => {
+    if (!isPrefsMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (
+        prefsMenuRef.current &&
+        !prefsMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsPrefsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isPrefsMenuOpen]);
 
   const playlistCollections = [
     {
@@ -1399,11 +1457,73 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <header className="dashboard-header">
         <div className="dashboard-header__brand">
-          <img
-            src={logo}
-            alt="VisionPort Logo"
-            className="dashboard-header__logo"
-          />
+          <div className="dashboard-header__brand-leading">
+            <div className="dashboard-header__prefs-menu" ref={prefsMenuRef}>
+              <button
+                type="button"
+                className="dashboard-header__prefs-trigger"
+                aria-label="Open tools menu"
+                aria-haspopup="menu"
+                aria-expanded={isPrefsMenuOpen}
+                onClick={() => setIsPrefsMenuOpen((previous) => !previous)}
+              >
+                <Menu size={22} />
+              </button>
+              {isPrefsMenuOpen && (
+                <div className="dashboard-header__prefs-dropdown" role="menu">
+                  <div className="dashboard-header__prefs-heading">Tools</div>
+                  <button
+                    type="button"
+                    className="dashboard-header__prefs-item"
+                    onClick={() => handlePrefsMenuAction("import")}
+                  >
+                    Import
+                  </button>
+                  <button
+                    type="button"
+                    className="dashboard-header__prefs-item"
+                    onClick={() => handlePrefsMenuAction("capture")}
+                  >
+                    Capture
+                  </button>
+                  <button
+                    type="button"
+                    className="dashboard-header__prefs-item"
+                    onClick={() => handlePrefsMenuAction("my-account")}
+                  >
+                    My Account
+                  </button>
+                  <button
+                    type="button"
+                    className="dashboard-header__prefs-item"
+                    onClick={() => handlePrefsMenuAction("admin")}
+                  >
+                    Admin
+                  </button>
+                  <button
+                    type="button"
+                    className="dashboard-header__prefs-item"
+                    onClick={() => handlePrefsMenuAction("about")}
+                  >
+                    About
+                  </button>
+                  <button
+                    type="button"
+                    className="dashboard-header__prefs-item dashboard-header__prefs-item--refresh"
+                    onClick={() => handlePrefsMenuAction("refresh")}
+                  >
+                    <span>Refresh</span>
+                    <RefreshCw size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+            <img
+              src={logo}
+              alt="VisionPort Logo"
+              className="dashboard-header__logo"
+            />
+          </div>
           <span className="dashboard-header__title">
             Content Management System
           </span>
